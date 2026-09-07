@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendario de Turnos</title>
+    <title>Papify</title>
     <style>
         * {
             margin: 0;
@@ -27,9 +27,10 @@
         }
 
         h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #1a1a1a;
         }
 
         .subtitle {
@@ -47,7 +48,7 @@
             background: white;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 14px 14px;
+            padding: 14px;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
@@ -73,7 +74,6 @@
             transform: rotate(180deg);
         }
 
-        /* Balance content as text */
         .balance-row {
             background: white;
             border: 1px solid #e0e0e0;
@@ -82,6 +82,8 @@
             padding: 14px;
             font-size: 13px;
             line-height: 1.8;
+            display: flex;
+            flex-direction: column;
         }
 
         .balance-item {
@@ -114,8 +116,6 @@
         .balance-value-text.negative {
             color: #27ae60;
         }
-
-
 
         /* Month Navigation */
         .month-nav {
@@ -176,16 +176,16 @@
             color: #3498db;
         }
 
-        /* Week days header */
+        /* Adaptado a 7 columnas para Lunes a Domingo */
         .weekdays {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
             margin-bottom: 8px;
         }
 
         .weekday-header {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-align: center;
             color: #999;
@@ -193,10 +193,9 @@
             text-transform: uppercase;
         }
 
-        /* Days grid */
         .days-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(7, 1fr);
             gap: 4px;
         }
 
@@ -211,9 +210,10 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             text-align: center;
+            min-height: 52px;
         }
 
         .day-cell:active {
@@ -227,7 +227,7 @@
         }
 
         .day-number {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #999;
             margin-bottom: 2px;
@@ -238,13 +238,13 @@
         }
 
         .person-assigned {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #2c2c2c;
             word-break: break-word;
+            line-height: 1.1;
         }
 
-        /* Empty day */
         .day-cell.empty {
             background: #fafafa;
             border-color: #f0f0f0;
@@ -261,10 +261,6 @@
             border-color: #ffcdd2;
         }
 
-        .day-cell.holiday:active {
-            background: #ffcdd2;
-        }
-
         .day-cell.holiday .day-number {
             color: #c62828;
         }
@@ -275,9 +271,7 @@
         .aritz { color: #27ae60; }
         .arnau { color: #f39c12; }
 
-
-
-        /* Modal/Popup (hidden by default) */
+        /* Modal / Overlay */
         .modal {
             display: none;
             position: fixed;
@@ -297,12 +291,8 @@
         }
 
         @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-            to {
-                transform: translateY(0);
-            }
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
 
         .modal-header {
@@ -318,7 +308,7 @@
         }
 
         .modal-option {
-            padding: 14px 14px;
+            padding: 14px;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
             background: white;
@@ -348,10 +338,7 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.3);
             z-index: 99;
         }
@@ -359,42 +346,12 @@
         .modal-overlay.active {
             display: block;
         }
-
-        /* Responsive */
-        @media (max-width: 360px) {
-            body {
-                padding: 12px;
-            }
-
-            .calendar-month {
-                padding: 12px;
-            }
-
-            .day-cell {
-                min-height: 70px;
-                padding: 8px 6px;
-            }
-
-            .person-assigned {
-                font-size: 12px;
-            }
-        }
-
-        /* Hide scrollbar but keep scroll */
-        .balance-row {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .balance-row::-webkit-scrollbar {
-            display: none;
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>Calendario de Turnos</h1>
-        <p class="subtitle">Cole Guinardera Fútbol</p>
+        <h1>Papify</h1>
+        <p class="subtitle">Cole/Guinardera Futbol Sala</p>
     </header>
 
     <!-- Balance Section (Collapsible) -->
@@ -404,6 +361,7 @@
             <span class="toggle-icon">▼</span>
         </button>
         <div class="balance-row" id="balanceContent" style="display: none;">
+            <!-- Contenido dinámico o estático -->
             <div class="balance-item">
                 <span class="balance-name">Robert</span>
                 <span class="balance-value-text">0</span>
@@ -430,20 +388,22 @@
     <!-- Month Navigation -->
     <div class="month-nav">
         <button class="nav-button" id="prevBtn">← Anterior</button>
-        <div class="month-title" id="monthTitle">Noviembre 2026</div>
+        <div class="month-title" id="monthTitle">Cargando...</div>
         <button class="nav-button" id="nextBtn">Siguiente →</button>
     </div>
 
     <!-- Calendar -->
     <div class="calendar-container">
         <div class="calendar-month current" id="currentCalendar">
-            <div class="month-header" id="monthHeader">Noviembre 2026</div>
+            <div class="month-header" id="monthHeader">---</div>
             <div class="weekdays">
                 <div class="weekday-header">L</div>
                 <div class="weekday-header">M</div>
                 <div class="weekday-header">X</div>
                 <div class="weekday-header">J</div>
                 <div class="weekday-header">V</div>
+                <div class="weekday-header">S</div>
+                <div class="weekday-header">D</div>
             </div>
             <div class="days-grid" id="daysGrid">
                 <!-- Se genera con JavaScript -->
@@ -454,7 +414,7 @@
     <!-- Modal for changing person -->
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="modal" id="changePerson">
-        <div class="modal-header">Cambiar turno para <span id="selectedDate">9 de Noviembre</span></div>
+        <div class="modal-header">Cambiar turno para <span id="selectedDate">--</span></div>
         <div class="modal-options">
             <button class="modal-option" data-person="Robert">Robert</button>
             <button class="modal-option" data-person="Bernat">Bernat</button>
@@ -466,68 +426,72 @@
     </div>
 
     <script>
-        // ===== CONFIGURACIÓN =====
-        // URL de Google Apps Script
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx77njR60oqp5arg7Orym-iNFwBiMswvvR6ApmzuQzpYgscBEN9xBwfrwVq1v5aiuvsjQ/exec';       
-
-
-        // Variables globales
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuymUHyQIO7qQEH1vhN_0MdWy7JgsPI2sZkgku3POBLL1zptH1XyorWNwZi8JYuf2hig/exec';
         let schedule = {};
         let holidays = [];
-        let calendarData = [];
         let currentDate = new Date();
         const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const today = new Date();
 
-        // ===== CARGAR DATOS DEL GOOGLE SHEETS =====
+        // Helper para convertir objeto Date a clave YYYY-MM-DD
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // ===== CARGAR DATOS DE SHEETS =====
         async function loadDataFromSheets() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
                 const data = await response.json();
 
-                // Procesar calendario
                 schedule = {};
-                data.calendar.forEach(row => {
-                    if (row.dia && row.persona) {
-                        schedule[row.dia] = row.persona;
-                    }
-                });
+                if (data.calendar) {
+                    data.calendar.forEach(row => {
+                        if (row.fecha) {
+                            schedule[row.fecha] = row.persona;
+                        }
+                    });
+                }
 
-                // Procesar vacaciones
                 holidays = [];
-                data.vacations.forEach(row => {
-                    if (row.fecha) {
-                        const date = new Date(row.fecha);
-                        holidays.push(date.getDate());
-                    }
-                });
+                if (data.vacations) {
+                    data.vacations.forEach(row => {
+                        if (row.fecha) {
+                            holidays.push(row.fecha);
+                        }
+                    });
+                }
 
-                calendarData = data.calendar;
-                console.log('Datos cargados exitosamente');
                 updateCalendarDisplay();
             } catch (err) {
                 console.error('Error cargando datos de Sheets:', err);
-                alert('Error al cargar datos. Verifica la URL del Apps Script en el código.');
+                alert('Error al cargar los datos desde Google Sheets.');
             }
         }
 
-        // ===== GUARDAR CAMBIOS EN GOOGLE SHEETS =====
-        async function saveChangeToSheets(dia, persona) {
+        // ===== GUARDAR CAMBIOS =====
+        async function saveChangeToSheets(dateKey, persona) {
             try {
+                // Se envía por método POST para evitar restricciones de Apps Script con PUT
                 const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'PUT',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
-                        dia: dia,
+                        fecha: dateKey,
                         persona: persona
                     })
                 });
+
                 const result = await response.json();
                 if (result.success) {
-                    console.log('Cambio guardado exitosamente');
-                    schedule[dia] = persona;
+                    schedule[dateKey] = persona;
                     updateCalendarDisplay();
                 } else {
-                    alert('Error al guardar el cambio');
+                    alert('Error al guardar el cambio en la hoja de cálculo.');
                 }
             } catch (err) {
                 console.error('Error guardando en Sheets:', err);
@@ -535,27 +499,31 @@
             }
         }
 
-        const today = new Date();
-
+        // Genera los días en formato semanal (Lunes a Domingo)
         function generateDays(year, month) {
             const firstDay = new Date(year, month, 1);
             let startDate = new Date(firstDay);
-            const dayOfWeek = startDate.getDay();
-            const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            
+            let dayOfWeek = startDate.getDay(); // 0 = Dom, 1 = Lun...
+            let daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
             startDate.setDate(startDate.getDate() - daysToSubtract);
 
             const days = [];
             let currentDay = new Date(startDate);
+            
             const lastDay = new Date(year, month + 1, 0);
             const endDate = new Date(lastDay);
-            endDate.setDate(endDate.getDate() + (5 - endDate.getDay()));
+            let endDayOfWeek = endDate.getDay();
+            let daysToAdd = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek;
+            endDate.setDate(endDate.getDate() + daysToAdd);
 
             while (currentDay <= endDate) {
                 days.push({
                     date: new Date(currentDay),
-                    day: currentDay.getDate(),
+                    dateKey: formatDateKey(currentDay),
+                    dayNumber: currentDay.getDate(),
                     isCurrentMonth: currentDay.getMonth() === month,
-                    isToday: currentDay.toDateString() === today.toDateString()
+                    isToday: formatDateKey(currentDay) === formatDateKey(today)
                 });
                 currentDay.setDate(currentDay.getDate() + 1);
             }
@@ -565,32 +533,30 @@
         function updateCalendarDisplay() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            const monthTitle = document.getElementById('monthTitle');
-            const monthHeader = document.getElementById('monthHeader');
-            
-            monthTitle.textContent = monthNames[month] + ' ' + year;
-            monthHeader.textContent = monthNames[month] + ' ' + year;
+
+            document.getElementById('monthTitle').textContent = monthNames[month] + ' ' + year;
+            document.getElementById('monthHeader').textContent = monthNames[month] + ' ' + year;
 
             const days = generateDays(year, month);
             const daysGrid = document.getElementById('daysGrid');
             daysGrid.innerHTML = '';
 
-            days.forEach((day, idx) => {
-                const isHoliday = day.isCurrentMonth && holidays.includes(day.day);
-                const person = day.isCurrentMonth ? (schedule[day.day] || '') : '';
+            days.forEach((dayObj) => {
+                const isHoliday = holidays.includes(dayObj.dateKey);
+                const person = schedule[dayObj.dateKey] || '';
 
                 let cell = document.createElement('div');
                 
-                if (!day.isCurrentMonth) {
+                if (!dayObj.isCurrentMonth) {
                     cell.className = 'day-cell empty';
                 } else {
                     cell.className = 'day-cell';
-                    if (day.isToday) cell.classList.add('today');
+                    if (dayObj.isToday) cell.classList.add('today');
                     if (isHoliday) cell.classList.add('holiday');
 
                     const dayNumber = document.createElement('div');
                     dayNumber.className = 'day-number';
-                    dayNumber.textContent = day.day;
+                    dayNumber.textContent = dayObj.dayNumber;
                     cell.appendChild(dayNumber);
 
                     if (person) {
@@ -601,7 +567,7 @@
                     }
 
                     cell.addEventListener('click', function() {
-                        openModal(day.day, monthNames[month]);
+                        openModal(dayObj.dateKey, dayObj.dayNumber, monthNames[month]);
                     });
                 }
 
@@ -620,51 +586,46 @@
             updateCalendarDisplay();
         });
 
-        // Balance toggle
+        // Toggle del Balance
         document.getElementById('balanceToggle').addEventListener('click', function() {
             this.classList.toggle('open');
             document.getElementById('balanceContent').style.display = 
                 this.classList.contains('open') ? 'flex' : 'none';
         });
 
-        // Modal
+        // Modal de Asignación
         const modal = document.getElementById('changePerson');
         const modalOverlay = document.getElementById('modalOverlay');
         const closeBtn = document.getElementById('closeModal');
         const selectedDateSpan = document.getElementById('selectedDate');
-        let selectedDay = null;
+        let selectedDateKey = null;
 
-        function openModal(day, monthName) {
-            selectedDay = day;
-            selectedDateSpan.textContent = day + ' de ' + monthName;
+        function openModal(dateKey, dayNumber, monthName) {
+            selectedDateKey = dateKey;
+            selectedDateSpan.textContent = dayNumber + ' de ' + monthName;
             modal.classList.add('active');
             modalOverlay.classList.add('active');
         }
 
-        closeBtn.addEventListener('click', function() {
+        function closeModal() {
             modal.classList.remove('active');
             modalOverlay.classList.remove('active');
-        });
+        }
 
-        modalOverlay.addEventListener('click', function() {
-            modal.classList.remove('active');
-            modalOverlay.classList.remove('active');
-        });
+        closeBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
 
         document.querySelectorAll('.modal-option').forEach(option => {
             option.addEventListener('click', function() {
                 const newPerson = this.dataset.person === '—' ? '' : this.dataset.person;
-                console.log('Cambiar día', selectedDay, 'a persona:', newPerson);
-                
-                // Guardar en Sheets
-                saveChangeToSheets(selectedDay, newPerson);
-                
-                modal.classList.remove('active');
-                modalOverlay.classList.remove('active');
+                if (selectedDateKey) {
+                    saveChangeToSheets(selectedDateKey, newPerson);
+                }
+                closeModal();
             });
         });
 
-        // ===== INICIALIZAR AL CARGAR =====
+        // Inicializar
         loadDataFromSheets();
     </script>
 </body>
