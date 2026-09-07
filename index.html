@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Turnos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #fafafa;
+            color: #2c2c2c;
+            padding: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-top: 12px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Balance Section */
+        .balance-section {
+            margin-bottom: 24px;
+        }
+
+        .balance-toggle {
+            width: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c2c2c;
+            transition: all 0.2s;
+        }
+
+        .balance-toggle:active {
+            background: #f9f9f9;
+        }
+
+        .toggle-icon {
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.3s;
+        }
+
+        .balance-toggle.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Balance content as text */
+        .balance-row {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .balance-item:last-child {
+            margin-bottom: 0;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .balance-name {
+            color: #2c2c2c;
+            font-weight: 500;
+        }
+
+        .balance-value-text {
+            color: #666;
+        }
+
+        .balance-value-text.positive {
+            color: #e74c3c;
+        }
+
+        .balance-value-text.negative {
+            color: #27ae60;
+        }
+
+
+
+        /* Month Navigation */
+        .month-nav {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .nav-button {
+            background: none;
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #2c2c2c;
+            transition: background 0.2s;
+        }
+
+        .nav-button:active {
+            background: #f0f0f0;
+        }
+
+        /* Calendar Section */
+        .calendar-container {
+            margin-bottom: 32px;
+        }
+
+        .calendar-month {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-month.current {
+            border: 2px solid #3498db;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+        }
+
+        .month-header {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .calendar-month.current .month-header {
+            color: #3498db;
+        }
+
+        /* Week days header */
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .weekday-header {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: #999;
+            padding: 4px 2px;
+            text-transform: uppercase;
+        }
+
+        /* Days grid */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+
+        .day-cell {
+            background: #f8f8f8;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 4px 2px;
+            aspect-ratio: 0.85;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .day-cell:active {
+            transform: scale(0.98);
+            background: #f0f0f0;
+        }
+
+        .day-cell.today {
+            background: #fffbf0;
+            border: 1.5px solid #f39c12;
+        }
+
+        .day-number {
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 2px;
+        }
+
+        .day-cell.today .day-number {
+            color: #f39c12;
+        }
+
+        .person-assigned {
+            font-size: 11px;
+            font-weight: 600;
+            color: #2c2c2c;
+            word-break: break-word;
+        }
+
+        /* Empty day */
+        .day-cell.empty {
+            background: #fafafa;
+            border-color: #f0f0f0;
+            cursor: default;
+        }
+
+        .day-cell.empty:active {
+            transform: none;
+            background: #fafafa;
+        }
+
+        .day-cell.holiday {
+            background: #ffebee;
+            border-color: #ffcdd2;
+        }
+
+        .day-cell.holiday:active {
+            background: #ffcdd2;
+        }
+
+        .day-cell.holiday .day-number {
+            color: #c62828;
+        }
+
+        /* Color coding for persons */
+        .robert { color: #e74c3c; }
+        .bernat { color: #3498db; }
+        .aritz { color: #27ae60; }
+        .arnau { color: #f39c12; }
+
+
+
+        /* Modal/Popup (hidden by default) */
+        .modal {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            padding: 20px;
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c2c2c;
+        }
+
+        .modal-options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .modal-option {
+            padding: 14px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .modal-option:active {
+            background: #f0f0f0;
+        }
+
+        .modal-close {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c2c2c;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 99;
+        }
+
+        .modal-overlay.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 360px) {
+            body {
+                padding: 12px;
+            }
+
+            .calendar-month {
+                padding: 12px;
+            }
+
+            .day-cell {
+                min-height: 70px;
+                padding: 8px 6px;
+            }
+
+            .person-assigned {
+                font-size: 12px;
+            }
+        }
+
+        /* Hide scrollbar but keep scroll */
+        .balance-row {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .balance-row::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Calendario de Turnos</h1>
+        <p class="subtitle">Cole Guinardera Fútbol</p>
+    </header>
+
+    <!-- Balance Section (Collapsible) -->
+    <div class="balance-section">
+        <button class="balance-toggle" id="balanceToggle">
+            <span>Balance</span>
+            <span class="toggle-icon">▼</span>
+        </button>
+        <div class="balance-row" id="balanceContent" style="display: none;">
+            <div class="balance-item">
+                <span class="balance-name">Robert</span>
+                <span class="balance-value-text">0</span>
+            </div>
+            <div class="balance-item">
+                <span class="balance-name">Bernat</span>
+                <span class="balance-value-text positive">+1 debe</span>
+            </div>
+            <div class="balance-item">
+                <span class="balance-name">Aritz</span>
+                <span class="balance-value-text negative">-1 le deben</span>
+            </div>
+            <div class="balance-item">
+                <span class="balance-name">Arnau</span>
+                <span class="balance-value-text">0</span>
+            </div>
+            <div class="balance-item">
+                <span class="balance-name">Total turnos</span>
+                <span class="balance-value-text">6</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Month Navigation -->
+    <div class="month-nav">
+        <button class="nav-button" id="prevBtn">← Anterior</button>
+        <div class="month-title" id="monthTitle">Noviembre 2026</div>
+        <button class="nav-button" id="nextBtn">Siguiente →</button>
+    </div>
+
+    <!-- Calendar -->
+    <div class="calendar-container">
+        <div class="calendar-month current" id="currentCalendar">
+            <div class="month-header" id="monthHeader">Noviembre 2026</div>
+            <div class="weekdays">
+                <div class="weekday-header">L</div>
+                <div class="weekday-header">M</div>
+                <div class="weekday-header">X</div>
+                <div class="weekday-header">J</div>
+                <div class="weekday-header">V</div>
+            </div>
+            <div class="days-grid" id="daysGrid">
+                <!-- Se genera con JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for changing person -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="changePerson">
+        <div class="modal-header">Cambiar turno para <span id="selectedDate">9 de Noviembre</span></div>
+        <div class="modal-options">
+            <button class="modal-option" data-person="Robert">Robert</button>
+            <button class="modal-option" data-person="Bernat">Bernat</button>
+            <button class="modal-option" data-person="Aritz">Aritz</button>
+            <button class="modal-option" data-person="Arnau">Arnau</button>
+            <button class="modal-option" data-person="—">Sin asignar</button>
+        </div>
+        <button class="modal-close" id="closeModal">Cerrar</button>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        // Reemplaza esto con tu URL de Google Apps Script
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/d/AKfycbxTAmbTCXnEmhJaveWySK-NjoPL1QpMODDL2HOPdMQDbYQpZVMUaz8a1xhfYe6ZD8LJww/usercontent';
+
+
+        // Variables globales
+        let schedule = {};
+        let holidays = [];
+        let calendarData = [];
+        let currentDate = new Date();
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        // ===== CARGAR DATOS DEL GOOGLE SHEETS =====
+        async function loadDataFromSheets() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL);
+                const data = await response.json();
+
+                // Procesar calendario
+                schedule = {};
+                data.calendar.forEach(row => {
+                    if (row.dia && row.persona) {
+                        schedule[row.dia] = row.persona;
+                    }
+                });
+
+                // Procesar vacaciones
+                holidays = [];
+                data.vacations.forEach(row => {
+                    if (row.fecha) {
+                        const date = new Date(row.fecha);
+                        holidays.push(date.getDate());
+                    }
+                });
+
+                calendarData = data.calendar;
+                console.log('Datos cargados exitosamente');
+                updateCalendarDisplay();
+            } catch (err) {
+                console.error('Error cargando datos de Sheets:', err);
+                alert('Error al cargar datos. Verifica la URL del Apps Script en el código.');
+            }
+        }
+
+        // ===== GUARDAR CAMBIOS EN GOOGLE SHEETS =====
+        async function saveChangeToSheets(dia, persona) {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        dia: dia,
+                        persona: persona
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('Cambio guardado exitosamente');
+                    schedule[dia] = persona;
+                    updateCalendarDisplay();
+                } else {
+                    alert('Error al guardar el cambio');
+                }
+            } catch (err) {
+                console.error('Error guardando en Sheets:', err);
+                alert('Error al guardar. Intenta de nuevo.');
+            }
+        }
+
+        const today = new Date();
+
+        function generateDays(year, month) {
+            const firstDay = new Date(year, month, 1);
+            let startDate = new Date(firstDay);
+            const dayOfWeek = startDate.getDay();
+            const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            startDate.setDate(startDate.getDate() - daysToSubtract);
+
+            const days = [];
+            let currentDay = new Date(startDate);
+            const lastDay = new Date(year, month + 1, 0);
+            const endDate = new Date(lastDay);
+            endDate.setDate(endDate.getDate() + (5 - endDate.getDay()));
+
+            while (currentDay <= endDate) {
+                days.push({
+                    date: new Date(currentDay),
+                    day: currentDay.getDate(),
+                    isCurrentMonth: currentDay.getMonth() === month,
+                    isToday: currentDay.toDateString() === today.toDateString()
+                });
+                currentDay.setDate(currentDay.getDate() + 1);
+            }
+            return days;
+        }
+
+        function updateCalendarDisplay() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthTitle = document.getElementById('monthTitle');
+            const monthHeader = document.getElementById('monthHeader');
+            
+            monthTitle.textContent = monthNames[month] + ' ' + year;
+            monthHeader.textContent = monthNames[month] + ' ' + year;
+
+            const days = generateDays(year, month);
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+
+            days.forEach((day, idx) => {
+                const isHoliday = day.isCurrentMonth && holidays.includes(day.day);
+                const person = day.isCurrentMonth ? (schedule[day.day] || '') : '';
+
+                let cell = document.createElement('div');
+                
+                if (!day.isCurrentMonth) {
+                    cell.className = 'day-cell empty';
+                } else {
+                    cell.className = 'day-cell';
+                    if (day.isToday) cell.classList.add('today');
+                    if (isHoliday) cell.classList.add('holiday');
+
+                    const dayNumber = document.createElement('div');
+                    dayNumber.className = 'day-number';
+                    dayNumber.textContent = day.day;
+                    cell.appendChild(dayNumber);
+
+                    if (person) {
+                        const personDiv = document.createElement('div');
+                        personDiv.className = 'person-assigned ' + person.toLowerCase();
+                        personDiv.textContent = person;
+                        cell.appendChild(personDiv);
+                    }
+
+                    cell.addEventListener('click', function() {
+                        openModal(day.day, monthNames[month]);
+                    });
+                }
+
+                daysGrid.appendChild(cell);
+            });
+        }
+
+        // Navegación
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendarDisplay();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendarDisplay();
+        });
+
+        // Balance toggle
+        document.getElementById('balanceToggle').addEventListener('click', function() {
+            this.classList.toggle('open');
+            document.getElementById('balanceContent').style.display = 
+                this.classList.contains('open') ? 'flex' : 'none';
+        });
+
+        // Modal
+        const modal = document.getElementById('changePerson');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const closeBtn = document.getElementById('closeModal');
+        const selectedDateSpan = document.getElementById('selectedDate');
+        let selectedDay = null;
+
+        function openModal(day, monthName) {
+            selectedDay = day;
+            selectedDateSpan.textContent = day + ' de ' + monthName;
+            modal.classList.add('active');
+            modalOverlay.classList.add('active');
+        }
+
+        closeBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+            modalOverlay.classList.remove('active');
+        });
+
+        modalOverlay.addEventListener('click', function() {
+            modal.classList.remove('active');
+            modalOverlay.classList.remove('active');
+        });
+
+        document.querySelectorAll('.modal-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const newPerson = this.dataset.person === '—' ? '' : this.dataset.person;
+                console.log('Cambiar día', selectedDay, 'a persona:', newPerson);
+                
+                // Guardar en Sheets
+                saveChangeToSheets(selectedDay, newPerson);
+                
+                modal.classList.remove('active');
+                modalOverlay.classList.remove('active');
+            });
+        });
+
+        // ===== INICIALIZAR AL CARGAR =====
+        loadDataFromSheets();
+    </script>
+</body>
+</html>
