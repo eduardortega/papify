@@ -168,7 +168,7 @@
         }
 
         .month-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
         }
 
@@ -238,6 +238,22 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 4px;
+        }
+
+
+        #daysGrid .day-cell:nth-child(7n+6), 
+        #daysGrid .day-cell:nth-child(7n+7) {
+            background: #ffd3d4;
+        }
+
+        @media (max-width: 480px) {
+            #daysGrid .day-cell:nth-child(7n+6), 
+            #daysGrid .day-cell:nth-child(7n+7),
+            .weekday-header:nth-child(7n+6),
+            .weekday-header:nth-child(7n+7), 
+            {
+                visibility: hidden;
+            }
         }
 
         .day-cell {
@@ -394,18 +410,18 @@
     <!-- Capa de Carga / Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <div class="loading-text" id="loadingText">Cargando datos...</div>
+        <div class="loading-text" id="loadingText">Carregant...</div>
     </div>
 
     <header>
         <h1>Papify</h1>
-        <p class="subtitle">Cole Guinardera Fútbol</p>
+        <p class="subtitle">La Mirada => Guinardera</p>
     </header>
 
     <!-- Balance Section (Collapsible) -->
     <div class="balance-section">
         <button class="balance-toggle" id="balanceToggle">
-            <span>Balance</span>
+            <span>Balanç</span>
             <span class="toggle-icon">▼</span>
         </button>
         <div class="balance-row" id="balanceContent" style="display: none;">
@@ -415,18 +431,18 @@
             </div>
             <div class="balance-item">
                 <span class="balance-name">Bernat</span>
-                <span class="balance-value-text positive">+1 debe</span>
+                <span class="balance-value-text positive">+1 deu</span>
             </div>
             <div class="balance-item">
                 <span class="balance-name">Aritz</span>
-                <span class="balance-value-text negative">-1 le deben</span>
+                <span class="balance-value-text negative">-1 li deuen</span>
             </div>
             <div class="balance-item">
                 <span class="balance-name">Arnau</span>
                 <span class="balance-value-text">0</span>
             </div>
             <div class="balance-item">
-                <span class="balance-name">Total turnos</span>
+                <span class="balance-name">Total torns</span>
                 <span class="balance-value-text">6</span>
             </div>
         </div>
@@ -434,9 +450,9 @@
 
     <!-- Month Navigation -->
     <div class="month-nav">
-        <button class="nav-button" id="prevBtn">← Anterior</button>
-        <div class="month-title" id="monthTitle">Cargando...</div>
-        <button class="nav-button" id="nextBtn">Siguiente →</button>
+        <button class="nav-button" id="prevBtn"> ← </button>
+        <div class="month-title" id="monthTitle">Carregant...</div>
+        <button class="nav-button" id="nextBtn"> → </button>
     </div>
 
     <!-- Calendar -->
@@ -459,15 +475,15 @@
     <!-- Modal for changing person -->
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="modal" id="changePerson">
-        <div class="modal-header">Cambiar turno para <span id="selectedDate">--</span></div>
+        <div class="modal-header">Canviar torn per <span id="selectedDate">--</span></div>
         <div class="modal-options">
             <button class="modal-option" data-person="Robert">Robert</button>
             <button class="modal-option" data-person="Bernat">Bernat</button>
             <button class="modal-option" data-person="Aritz">Aritz</button>
             <button class="modal-option" data-person="Arnau">Arnau</button>
-            <button class="modal-option" data-person="—">Sin asignar</button>
+            <button class="modal-option" data-person="—">Sense assignar</button>
         </div>
-        <button class="modal-close" id="closeModal">Cerrar</button>
+        <button class="modal-close" id="closeModal">Tancar</button>
     </div>
 
     <script>
@@ -476,12 +492,12 @@
         let schedule = {};
         let holidays = [];
         let currentDate = new Date();
-        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const monthNames = ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 
+                           'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'];
         const today = new Date();
 
         // Controladores del Loading Overlay
-        function showLoading(text = 'Cargando datos...') {
+        function showLoading(text = 'Carregant...') {
             document.getElementById('loadingText').textContent = text;
             document.getElementById('loadingOverlay').classList.add('active');
         }
@@ -499,7 +515,7 @@
 
         // ===== CARGAR DATOS DE SHEETS =====
         async function loadDataFromSheets() {
-            showLoading('Cargando calendario...');
+            showLoading('Carregant...');
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
                 const data = await response.json();
@@ -524,8 +540,8 @@
 
                 updateCalendarDisplay();
             } catch (err) {
-                console.error('Error cargando datos de Sheets:', err);
-                alert('Error al cargar los datos desde Google Sheets.');
+                console.error('Error carregant dades de Sheets:', err);
+                alert('Error al carregar les dades des del Google Sheets.');
             } finally {
                 hideLoading();
             }
@@ -533,7 +549,7 @@
 
         // ===== GUARDAR CAMBIOS =====
         async function saveChangeToSheets(dateKey, persona) {
-            showLoading('Guardando cambios...');
+            showLoading('Guardant...');
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
@@ -549,11 +565,11 @@
                     schedule[dateKey] = persona;
                     updateCalendarDisplay();
                 } else {
-                    alert('Error al guardar el cambio en la hoja de cálculo.');
+                    alert('Error al guardar el canvi al Google Sheets.');
                 }
             } catch (err) {
-                console.error('Error guardando en Sheets:', err);
-                alert('Error al guardar. Intenta de nuevo.');
+                console.error('Error guardant en Google Sheets:', err);
+                alert('Error al guardar. Intenta de nou');
             } finally {
                 hideLoading();
             }
