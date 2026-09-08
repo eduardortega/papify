@@ -201,7 +201,7 @@
         }
 
         .calendar-month.current {
-            border: 2px solid #3498db;
+            border: 1px solid #3498db;
             box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
         }
 
@@ -220,25 +220,29 @@
         }
 
         .weekdays {
+            border: 1px solid #fff;
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 2px;
-            margin-bottom: 8px;
         }
 
         .weekday-header {
+            color: #000;
             font-size: 11px;
             font-weight: 600;
-            text-align: center;
-            color: #999;
             padding: 4px 2px;
             text-transform: uppercase;
+            justify-content: center;
+            aspect-ratio: 1;
+            align-items: center;
+            text-align: center;
+            min-height: 48px;
         }
 
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 2px;
         }
 
 
@@ -255,7 +259,7 @@
             .weekday-header:nth-child(7n+6),
             .weekday-header:nth-child(7n+7)
             {
-                visibility: hidden;
+                aspect-ratio: auto;
             }
         }
 
@@ -264,16 +268,16 @@
             border: 1px solid #e8e8e8;
             border-radius: 6px;
             padding: 4px 2px;
-            aspect-ratio: 0.85;
+            aspect-ratio: 1;
             display: flex;
             flex-direction: column;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
             text-align: center;
-            min-height: 52px;
+            min-height: 48px;
         }
 
         .day-cell:active {
@@ -421,6 +425,30 @@
         <p class="subtitle">La Mirada => Guinardera</p>
     </header>
 
+    <!-- Month Navigation -->
+    <div class="month-nav">
+        <button class="nav-button" id="prevBtn"> ← </button>
+        <div class="month-title" id="monthTitle">Carregant...</div>
+        <button class="nav-button" id="nextBtn"> → </button>
+    </div>
+
+    <!-- Calendar -->
+    <div class="calendar-container">
+        <div class="calendar-month current" id="currentCalendar">
+            <div class="month-header" id="monthHeader">---</div>
+            <div class="weekdays">
+                <div class="weekday-header">L</div>
+                <div class="weekday-header">M</div>
+                <div class="weekday-header">X</div>
+                <div class="weekday-header">J</div>
+                <div class="weekday-header">V</div>
+                <div class="weekday-header">S</div>
+                <div class="weekday-header">D</div>
+            </div>
+            <div class="days-grid" id="daysGrid"></div>
+        </div>
+    </div>
+
     <!-- Balance Section (Collapsible) -->
     <div class="balance-section">
         <button class="balance-toggle" id="balanceToggle">
@@ -448,30 +476,6 @@
                 <span class="balance-name">Total torns</span>
                 <span class="balance-value-text">6</span>
             </div>
-        </div>
-    </div>
-
-    <!-- Month Navigation -->
-    <div class="month-nav">
-        <button class="nav-button" id="prevBtn"> ← </button>
-        <div class="month-title" id="monthTitle">Carregant...</div>
-        <button class="nav-button" id="nextBtn"> → </button>
-    </div>
-
-    <!-- Calendar -->
-    <div class="calendar-container">
-        <div class="calendar-month current" id="currentCalendar">
-            <div class="month-header" id="monthHeader">---</div>
-            <div class="weekdays">
-                <div class="weekday-header">L</div>
-                <div class="weekday-header">M</div>
-                <div class="weekday-header">X</div>
-                <div class="weekday-header">J</div>
-                <div class="weekday-header">V</div>
-                <div class="weekday-header">S</div>
-                <div class="weekday-header">D</div>
-            </div>
-            <div class="days-grid" id="daysGrid"></div>
         </div>
     </div>
 
