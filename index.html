@@ -246,11 +246,16 @@
         }
 
 
-        #daysGrid .day-cell:nth-child(7n+6), 
-        #daysGrid .day-cell:nth-child(7n+7) {
-            background: #ffd3d4;
+        #daysGrid .day-cell:nth-child(7n+6) .day-number, 
+        #daysGrid .day-cell:nth-child(7n+7) .day-number {
+            background: #ffebee;
+            border-color: #ffcdd2;
         }
 
+        #daysGrid .day-cell:nth-child(7n+6), 
+        #daysGrid .day-cell:nth-child(7n+7) {
+            color: #666;
+        }
         
         @media screen and (max-width: 480px) 
         {            
