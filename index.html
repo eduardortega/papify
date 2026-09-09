@@ -246,17 +246,17 @@
         }
 
 
-        #daysGrid .day-cell:nth-child(7n+6) .day-number, 
-        #daysGrid .day-cell:nth-child(7n+7) .day-number {
+        #daysGrid .day-cell:nth-child(7n+6), 
+        #daysGrid .day-cell:nth-child(7n+7) {
             background: #ffebee;
             border-color: #ffcdd2;
         }
-
-        #daysGrid .day-cell:nth-child(7n+6), 
-        #daysGrid .day-cell:nth-child(7n+7) {
+        
+        #daysGrid .day-cell:nth-child(7n+6) .day-number, 
+        #daysGrid .day-cell:nth-child(7n+7) .day-number {
             color: #666;
         }
-        
+
         @media screen and (max-width: 480px) 
         {            
             #daysGrid .day-cell:nth-child(7n+6), 
@@ -373,7 +373,7 @@
         }
 
         .modal-options {
-            display: grid;
+            display: inline-flex;
             gap: 10px;
         }
 
@@ -490,11 +490,11 @@
     <div class="modal" id="changePerson">
         <div class="modal-header">Canviar torn per <span id="selectedDate">--</span></div>
         <div class="modal-options">
-            <button class="modal-option" data-person="Robert">Robert</button>
-            <button class="modal-option" data-person="Bernat">Bernat</button>
-            <button class="modal-option" data-person="Aritz">Aritz</button>
-            <button class="modal-option" data-person="Arnau">Arnau</button>
-            <button class="modal-option" data-person="—">Sense assignar</button>
+            <button class="modal-option" data-person="Aritz" class="aritz">Aritz</button>
+            <button class="modal-option" data-person="Arnau" class="arnau">Arnau</button>
+            <button class="modal-option" data-person="Bernat" class="bernat">Bernat</button>
+            <button class="modal-option" data-person="Robert" class="robert">Robert</button>
+            <button class="modal-option" data-person="—">&#8709;</button>
         </div>
         <button class="modal-close" id="closeModal">Tancar</button>
     </div>
