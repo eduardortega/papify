@@ -500,7 +500,7 @@
     </div>
 
     <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzAVhjHQDB847StcVN0-4TVPlMk31eMr3u5nDCAqFG6ZUntlg6xkRBkLI70VvjRWz4nA/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZzKZm3kBy_edW2WlrRlRuisC2J6W_Ote3Jkk6CyDfYmGuGpVkM7Y9FRlYI6AaF720/exec';
     const SCHOOL_YEAR_START = { year: 2026, month: 8 }; // Septiembre
     const SCHOOL_YEAR_END = { year: 2027, month: 5 }; // Junio
 
@@ -541,30 +541,21 @@ async function loadDataFromSheets() {
         const response = await fetch(APPS_SCRIPT_URL);
         const data = await response.json();
 
-        // Mapear turnos y NORMALIZAR fechas
         schedule = {};
         if (data.schedule) {
             data.schedule.forEach(row => {
                 if (row[0] && row[1]) {
-                    // Extraer solo YYYY-MM-DD de la fecha
-                    const normalizedDate = row[0].split('T')[0]; // "2026-09-13T22:00:00.000Z" → "2026-09-13"
-                    schedule[normalizedDate] = row[1];
+                    schedule[row[0]] = row[1]; // row[0] ya es YYYY-MM-DD
                 }
             });
         }
 
-        // Mapear festivos y NORMALIZAR
         holidays = [];
         if (data.holidays) {
-            data.holidays.forEach(row => {
-                if (row) {
-                    const normalizedDate = row.split('T')[0]; // Normalizar
-                    holidays.push(normalizedDate);
-                }
-            });
+            holidays = data.holidays; // Son strings YYYY-MM-DD directamente
         }
 
-        console.log('Datos cargados normalizados:', { schedule, holidays });
+        console.log('Datos cargados:', { schedule, holidays });
         updateCalendarDisplay();
     } catch (err) {
         console.error('Error:', err);
@@ -572,7 +563,7 @@ async function loadDataFromSheets() {
     } finally {
         hideLoading();
     }
-}    
+}  
 
     // ===== GENERAR CALENDARIO (SOLO JS) =====
 function generateDays(year, month) {
