@@ -500,7 +500,7 @@
     </div>
 
     <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZzKZm3kBy_edW2WlrRlRuisC2J6W_Ote3Jkk6CyDfYmGuGpVkM7Y9FRlYI6AaF720/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3QOhKAE5Jc8IC31JPIXEN54xz32eCmoAb-YiVCeywWOqr8ejggvRkZDSVisByeKFz8A/exec';
     const SCHOOL_YEAR_START = { year: 2026, month: 8 }; // Septiembre
     const SCHOOL_YEAR_END = { year: 2027, month: 5 }; // Junio
 
@@ -535,6 +535,26 @@ function formatDateKey(date) {
 }
 
     // ===== CARGAR DATOS (SOLO LECTURA DE SHEETS) =====
+function normalizeDateFromSheets(value) {
+  if (!value) return null;
+  
+  // Si es Date object (Google Sheets), convertir a string
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  // Si es string, limpiar
+  if (typeof value === 'string') {
+    // Tomar solo los primeros 10 caracteres (YYYY-MM-DD)
+    return value.substring(0, 10);
+  }
+  
+  return null;
+}
+
 async function loadDataFromSheets() {
     showLoading('Carregant dades...');
     try {
@@ -544,18 +564,28 @@ async function loadDataFromSheets() {
         schedule = {};
         if (data.schedule) {
             data.schedule.forEach(row => {
-                if (row[0] && row[1]) {
-                    schedule[row[0]] = row[1]; // row[0] ya es YYYY-MM-DD
+                const fecha = normalizeDateFromSheets(row[0]);
+                const persona = row[1];
+                if (fecha && persona) {
+                    schedule[fecha] = persona;
+                    console.log(`Schedule: ${fecha} → ${persona}`);
                 }
             });
         }
 
         holidays = [];
         if (data.holidays) {
-            holidays = data.holidays; // Son strings YYYY-MM-DD directamente
+            data.holidays.forEach(row => {
+                const fecha = normalizeDateFromSheets(row[0]);
+                if (fecha) {
+                    holidays.push(fecha);
+                    console.log(`Holiday: ${fecha}`);
+                }
+            });
         }
 
-        console.log('Datos cargados:', { schedule, holidays });
+        console.log('Schedule final:', schedule);
+        console.log('Holidays final:', holidays);
         updateCalendarDisplay();
     } catch (err) {
         console.error('Error:', err);
@@ -563,7 +593,7 @@ async function loadDataFromSheets() {
     } finally {
         hideLoading();
     }
-}  
+}
 
     // ===== GENERAR CALENDARIO (SOLO JS) =====
 function generateDays(year, month) {
