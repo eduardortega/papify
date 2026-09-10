@@ -500,222 +500,217 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuymUHyQIO7qQEH1vhN_0MdWy7JgsPI2sZkgku3POBLL1zptH1XyorWNwZi8JYuf2hig/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwzAVhjHQDB847StcVN0-4TVPlMk31eMr3u5nDCAqFG6ZUntlg6xkRBkLI70VvjRWz4nA/exec';
+    const SCHOOL_YEAR_START = { year: 2026, month: 8 }; // Septiembre
+    const SCHOOL_YEAR_END = { year: 2027, month: 5 }; // Junio
 
-        let schedule = {};
-        let holidays = [];
-        let currentDate = new Date();
-        const monthNames = ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 
-                           'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'];
-        const today = new Date();
+    let schedule = {};
+    let holidays = [];
+    let currentDate = new Date();
+    const monthNames = ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 
+                       'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'];
+    const today = new Date();
 
-        // Controladores del Loading Overlay
-        function showLoading(text = 'Carregant...') {
-            document.getElementById('loadingText').textContent = text;
-            document.getElementById('loadingOverlay').classList.add('active');
-        }
+    function showLoading(text = 'Carregant...') {
+        document.getElementById('loadingText').textContent = text;
+        document.getElementById('loadingOverlay').classList.add('active');
+    }
 
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
-        }
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('active');
+    }
 
-        function formatDateKey(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
+    function formatDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
-        // ===== CARGAR DATOS DE SHEETS =====
-        async function loadDataFromSheets() {
-            showLoading('Carregant...');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL);
-                const data = await response.json();
+    // ===== CARGAR DATOS (SOLO LECTURA DE SHEETS) =====
+    async function loadDataFromSheets() {
+        showLoading('Carregant dades...');
+        try {
+            const response = await fetch(APPS_SCRIPT_URL);
+            const data = await response.json();
 
-                schedule = {};
-                if (data.calendar) {
-                    data.calendar.forEach(row => {
-                        if (row.fecha) {
-                            schedule[row.fecha] = row.persona;
-                        }
-                    });
-                }
-
-                holidays = [];
-                if (data.vacations) {
-                    data.vacations.forEach(row => {
-                        if (row.fecha) {
-                            holidays.push(row.fecha);
-                        }
-                    });
-                }
-
-                updateCalendarDisplay();
-            } catch (err) {
-                console.error('Error carregant dades de Sheets:', err);
-                alert('Error al carregar les dades des del Google Sheets.');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        // ===== GUARDAR CAMBIOS =====
-        async function saveChangeToSheets(dateKey, persona) {
-            showLoading('Guardant...');
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        fecha: dateKey,
-                        persona: persona
-                    })
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    schedule[dateKey] = persona;
-                    updateCalendarDisplay();
-                } else {
-                    alert('Error al guardar el canvi al Google Sheets.');
-                }
-            } catch (err) {
-                console.error('Error guardant en Google Sheets:', err);
-                alert('Error al guardar. Intenta de nou');
-            } finally {
-                hideLoading();
-            }
-        }
-
-        function generateDays(year, month) {
-            const firstDay = new Date(year, month, 1);
-            let startDate = new Date(firstDay);
-            
-            let dayOfWeek = startDate.getDay();
-            let daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-            startDate.setDate(startDate.getDate() - daysToSubtract);
-
-            const days = [];
-            let currentDay = new Date(startDate);
-            
-            const lastDay = new Date(year, month + 1, 0);
-            const endDate = new Date(lastDay);
-            let endDayOfWeek = endDate.getDay();
-            let daysToAdd = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek;
-            endDate.setDate(endDate.getDate() + daysToAdd);
-
-            while (currentDay <= endDate) {
-                days.push({
-                    date: new Date(currentDay),
-                    dateKey: formatDateKey(currentDay),
-                    dayNumber: currentDay.getDate(),
-                    isCurrentMonth: currentDay.getMonth() === month,
-                    isToday: formatDateKey(currentDay) === formatDateKey(today)
-                });
-                currentDay.setDate(currentDay.getDate() + 1);
-            }
-            return days;
-        }
-
-        function updateCalendarDisplay() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-
-            document.getElementById('monthTitle').textContent = monthNames[month] + ' ' + year;
-            document.getElementById('monthHeader').textContent = monthNames[month] + ' ' + year;
-
-            const days = generateDays(year, month);
-            const daysGrid = document.getElementById('daysGrid');
-            daysGrid.innerHTML = '';
-
-            days.forEach((dayObj) => {
-                const isHoliday = holidays.includes(dayObj.dateKey);
-                const person = schedule[dayObj.dateKey] || '';
-
-                let cell = document.createElement('div');
-                
-                if (!dayObj.isCurrentMonth) {
-                    cell.className = 'day-cell empty';
-                } else {
-                    cell.className = 'day-cell';
-                    if (dayObj.isToday) cell.classList.add('today');
-                    if (isHoliday) cell.classList.add('holiday');
-
-                    const dayNumber = document.createElement('div');
-                    dayNumber.className = 'day-number';
-                    dayNumber.textContent = dayObj.dayNumber;
-                    cell.appendChild(dayNumber);
-
-                    if (person) {
-                        const personDiv = document.createElement('div');
-                        personDiv.className = 'person-assigned ' + person.toLowerCase();
-                        personDiv.textContent = person;
-                        dayNumber.className += ' ' + person.toLowerCase();
-                        cell.appendChild(personDiv);
+            // Mapear turnos en objeto
+            schedule = {};
+            if (data.schedule) {
+                data.schedule.forEach(row => {
+                    if (row[0] && row[1]) {
+                        schedule[row[0]] = row[1];
                     }
+                });
+            }
 
-                    cell.addEventListener('click', function() {
-                        openModal(dayObj.dateKey, dayObj.dayNumber, monthNames[month]);
-                    });
+            // Mapear festivos
+            holidays = [];
+            if (data.holidays) {
+                data.holidays.forEach(row => {
+                    if (row) {
+                        holidays.push(row);
+                    }
+                });
+            }
+
+            console.log('Datos cargados:', { schedule, holidays });
+            updateCalendarDisplay();
+        } catch (err) {
+            console.error('Error:', err);
+            alert('Error al carregar les dades.');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // ===== GENERAR CALENDARIO (SOLO JS) =====
+    function generateDays(year, month) {
+        const firstDay = new Date(year, month, 1);
+        let startDate = new Date(firstDay);
+        
+        let dayOfWeek = startDate.getDay();
+        let daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate.setDate(startDate.getDate() - daysToSubtract);
+
+        const days = [];
+        let currentDay = new Date(startDate);
+        
+        const lastDay = new Date(year, month + 1, 0);
+        const endDate = new Date(lastDay);
+        let endDayOfWeek = endDate.getDay();
+        let daysToAdd = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek;
+        endDate.setDate(endDate.getDate() + daysToAdd);
+
+        while (currentDay <= endDate) {
+            days.push({
+                date: new Date(currentDay),
+                dateKey: formatDateKey(currentDay),
+                dayNumber: currentDay.getDate(),
+                isCurrentMonth: currentDay.getMonth() === month,
+                isToday: formatDateKey(currentDay) === formatDateKey(today)
+            });
+            currentDay.setDate(currentDay.getDate() + 1);
+        }
+        return days;
+    }
+
+    function updateCalendarDisplay() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        document.getElementById('monthTitle').textContent = monthNames[month] + ' ' + year;
+        document.getElementById('monthHeader').textContent = monthNames[month] + ' ' + year;
+
+        const days = generateDays(year, month);
+        const daysGrid = document.getElementById('daysGrid');
+        daysGrid.innerHTML = '';
+
+        days.forEach((dayObj) => {
+            const isHoliday = holidays.includes(dayObj.dateKey);
+            const person = schedule[dayObj.dateKey] || '';
+
+            let cell = document.createElement('div');
+            
+            if (!dayObj.isCurrentMonth) {
+                cell.className = 'day-cell empty';
+            } else {
+                cell.className = 'day-cell';
+                if (dayObj.isToday) cell.classList.add('today');
+                if (isHoliday) cell.classList.add('holiday');
+
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = dayObj.dayNumber;
+                cell.appendChild(dayNumber);
+
+                if (person) {
+                    const personDiv = document.createElement('div');
+                    personDiv.className = 'person-assigned ' + person.toLowerCase();
+                    personDiv.textContent = person;
+                    cell.appendChild(personDiv);
                 }
 
-                daysGrid.appendChild(cell);
+                cell.addEventListener('click', function() {
+                    openModal(dayObj.dateKey, dayObj.dayNumber, monthNames[month]);
+                });
+            }
+
+            daysGrid.appendChild(cell);
+        });
+    }
+
+    // ===== GUARDAR (SOLO WRITE) =====
+    async function saveChangeToSheets(dateKey, persona) {
+        showLoading('Guardant...');
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    fecha: dateKey,
+                    persona: persona
+                })
             });
+
+            const result = await response.json();
+            if (result.success) {
+                schedule[dateKey] = persona;
+                updateCalendarDisplay();
+            }
+        } catch (err) {
+            console.error('Error:', err);
+            alert('Error al guardar.');
+        } finally {
+            hideLoading();
         }
+    }
 
-        // Navegación
-        document.getElementById('prevBtn').addEventListener('click', function() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            updateCalendarDisplay();
+    // Navegación
+    document.getElementById('prevBtn').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        updateCalendarDisplay();
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        updateCalendarDisplay();
+    });
+
+    // Modal
+    const modal = document.getElementById('changePerson');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closeBtn = document.getElementById('closeModal');
+    const selectedDateSpan = document.getElementById('selectedDate');
+    let selectedDateKey = null;
+
+    function openModal(dateKey, dayNumber, monthName) {
+        selectedDateKey = dateKey;
+        selectedDateSpan.textContent = dayNumber + ' de ' + monthName;
+        modal.classList.add('active');
+        modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        modalOverlay.classList.remove('active');
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', closeModal);
+
+    document.querySelectorAll('.modal-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const newPerson = this.dataset.person === '—' ? '' : this.dataset.person;
+            if (selectedDateKey) {
+                saveChangeToSheets(selectedDateKey, newPerson);
+            }
+            closeModal();
         });
+    });
 
-        document.getElementById('nextBtn').addEventListener('click', function() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            updateCalendarDisplay();
-        });
-
-        // Toggle del Balance
-        document.getElementById('balanceToggle').addEventListener('click', function() {
-            this.classList.toggle('open');
-            document.getElementById('balanceContent').style.display = 
-                this.classList.contains('open') ? 'flex' : 'none';
-        });
-
-        // Modal de Asignación
-        const modal = document.getElementById('changePerson');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeBtn = document.getElementById('closeModal');
-        const selectedDateSpan = document.getElementById('selectedDate');
-        let selectedDateKey = null;
-
-        function openModal(dateKey, dayNumber, monthName) {
-            selectedDateKey = dateKey;
-            selectedDateSpan.textContent = dayNumber + ' de ' + monthName;
-            modal.classList.add('active');
-            modalOverlay.classList.add('active');
-        }
-
-        function closeModal() {
-            modal.classList.remove('active');
-            modalOverlay.classList.remove('active');
-        }
-
-        closeBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', closeModal);
-
-        document.querySelectorAll('.modal-option').forEach(option => {
-            option.addEventListener('click', function() {
-                const newPerson = this.dataset.person === '—' ? '' : this.dataset.person;
-                if (selectedDateKey) {
-                    saveChangeToSheets(selectedDateKey, newPerson);
-                }
-                closeModal();
-            });
-        });
-
-        // Inicializar
-        loadDataFromSheets();
-    </script>
+    // Inicializar
+    loadDataFromSheets();
+</script>
 </body>
 </html>
