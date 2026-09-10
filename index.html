@@ -528,41 +528,44 @@
     }
 
     // ===== CARGAR DATOS (SOLO LECTURA DE SHEETS) =====
-    async function loadDataFromSheets() {
-        showLoading('Carregant dades...');
-        try {
-            const response = await fetch(APPS_SCRIPT_URL);
-            const data = await response.json();
+async function loadDataFromSheets() {
+    showLoading('Carregant dades...');
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const data = await response.json();
 
-            // Mapear turnos en objeto
-            schedule = {};
-            if (data.schedule) {
-                data.schedule.forEach(row => {
-                    if (row[0] && row[1]) {
-                        schedule[row[0]] = row[1];
-                    }
-                });
-            }
-
-            // Mapear festivos
-            holidays = [];
-            if (data.holidays) {
-                data.holidays.forEach(row => {
-                    if (row) {
-                        holidays.push(row);
-                    }
-                });
-            }
-
-            console.log('Datos cargados:', { schedule, holidays });
-            updateCalendarDisplay();
-        } catch (err) {
-            console.error('Error:', err);
-            alert('Error al carregar les dades.');
-        } finally {
-            hideLoading();
+        // Mapear turnos y NORMALIZAR fechas
+        schedule = {};
+        if (data.schedule) {
+            data.schedule.forEach(row => {
+                if (row[0] && row[1]) {
+                    // Extraer solo YYYY-MM-DD de la fecha
+                    const normalizedDate = row[0].split('T')[0]; // "2026-09-13T22:00:00.000Z" → "2026-09-13"
+                    schedule[normalizedDate] = row[1];
+                }
+            });
         }
+
+        // Mapear festivos y NORMALIZAR
+        holidays = [];
+        if (data.holidays) {
+            data.holidays.forEach(row => {
+                if (row) {
+                    const normalizedDate = row.split('T')[0]; // Normalizar
+                    holidays.push(normalizedDate);
+                }
+            });
+        }
+
+        console.log('Datos cargados normalizados:', { schedule, holidays });
+        updateCalendarDisplay();
+    } catch (err) {
+        console.error('Error:', err);
+        alert('Error al carregar les dades.');
+    } finally {
+        hideLoading();
     }
+}    
 
     // ===== GENERAR CALENDARIO (SOLO JS) =====
     function generateDays(year, month) {
