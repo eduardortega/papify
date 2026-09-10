@@ -520,12 +520,19 @@
         document.getElementById('loadingOverlay').classList.remove('active');
     }
 
-    function formatDateKey(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+function formatDateKey(date) {
+    // Si es string (de Google Sheets), parsear como UTC
+    if (typeof date === 'string') {
+        const parts = date.split('T')[0].split('-');
+        return `${parts[0]}-${parts[1]}-${parts[2]}`;
     }
+    
+    // Si es Date object, usar UTC
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
     // ===== CARGAR DATOS (SOLO LECTURA DE SHEETS) =====
 async function loadDataFromSheets() {
@@ -568,35 +575,37 @@ async function loadDataFromSheets() {
 }    
 
     // ===== GENERAR CALENDARIO (SOLO JS) =====
-    function generateDays(year, month) {
-        const firstDay = new Date(year, month, 1);
-        let startDate = new Date(firstDay);
-        
-        let dayOfWeek = startDate.getDay();
-        let daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        startDate.setDate(startDate.getDate() - daysToSubtract);
+function generateDays(year, month) {
+    const firstDay = new Date(Date.UTC(year, month, 1));
+    let startDate = new Date(firstDay);
+    
+    let dayOfWeek = startDate.getUTCDay();
+    let daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startDate.setUTCDate(startDate.getUTCDate() - daysToSubtract);
 
-        const days = [];
-        let currentDay = new Date(startDate);
-        
-        const lastDay = new Date(year, month + 1, 0);
-        const endDate = new Date(lastDay);
-        let endDayOfWeek = endDate.getDay();
-        let daysToAdd = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek;
-        endDate.setDate(endDate.getDate() + daysToAdd);
+    const days = [];
+    let currentDay = new Date(startDate);
+    
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
+    const endDate = new Date(lastDay);
+    let endDayOfWeek = endDate.getUTCDay();
+    let daysToAdd = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek;
+    endDate.setUTCDate(endDate.getUTCDate() + daysToAdd);
 
-        while (currentDay <= endDate) {
-            days.push({
-                date: new Date(currentDay),
-                dateKey: formatDateKey(currentDay),
-                dayNumber: currentDay.getDate(),
-                isCurrentMonth: currentDay.getMonth() === month,
-                isToday: formatDateKey(currentDay) === formatDateKey(today)
-            });
-            currentDay.setDate(currentDay.getDate() + 1);
-        }
-        return days;
+    const todayKey = formatDateKey(today);
+
+    while (currentDay <= endDate) {
+        days.push({
+            date: new Date(currentDay),
+            dateKey: formatDateKey(currentDay),
+            dayNumber: currentDay.getUTCDate(),
+            isCurrentMonth: currentDay.getUTCMonth() === month,
+            isToday: formatDateKey(currentDay) === todayKey
+        });
+        currentDay.setUTCDate(currentDay.getUTCDate() + 1);
     }
+    return days;
+}
 
     function updateCalendarDisplay() {
         const year = currentDate.getFullYear();
