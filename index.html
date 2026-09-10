@@ -628,6 +628,79 @@ function generateDays(year, month) {
     return days;
 }
 
+    // ===== CALCULAR BALANCE =====
+    function calculateBalance() {
+        const SCHOOL_START = new Date(Date.UTC(2026, 8, 1)); // Septiembre 2026
+        const today = new Date();
+
+        const balances = {
+            'Robert': 0,
+            'Bernat': 0,
+            'Aritz': 0,
+            'Arnau': 0
+        };
+
+        // Iterar todas las fechas desde inicio hasta hoy
+        let currentDate = new Date(SCHOOL_START);
+        while (currentDate <= today) {
+            const dateKey = formatDateKey(currentDate);
+            const person = schedule[dateKey];
+
+            if (person && balances.hasOwnProperty(person)) {
+                balances[person]++;
+            }
+
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+        }
+
+        // Calcular promedio ideal
+        const totalTurnos = Object.values(balances).reduce((a, b) => a + b, 0);
+        const promedio = totalTurnos / 4;
+
+        // Calcular diferencia (si alguien debe o le deben)
+        const balanceData = {};
+        for (const person in balances) {
+            balanceData[person] = balances[person] - promedio;
+        }
+
+        return { balances, balanceData, totalTurnos };
+    }
+
+    function updateBalance() {
+        const { balances, balanceData, totalTurnos } = calculateBalance();
+
+        const balanceContent = document.getElementById('balanceContent');
+        balanceContent.innerHTML = '';
+
+        // Mostrar cada persona
+        for (const person in balances) {
+            const diff = balanceData[person];
+            const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : '';
+            const diffText = diff > 0 ? `+${Math.round(diff * 10) / 10}` : `${Math.round(diff * 10) / 10}`;
+
+            const item = document.createElement('div');
+            item.className = 'balance-item';
+            item.innerHTML = `
+                <span class="balance-name">${person}</span>
+                <span class="balance-value-text ${diffClass}">
+                    ${balances[person]} turnos ${diffText !== '0' ? `(${diffText})` : ''}
+                </span>
+            `;
+            balanceContent.appendChild(item);
+        }
+
+        // Total
+        const totalItem = document.createElement('div');
+        totalItem.className = 'balance-item';
+        totalItem.style.paddingTop = '10px';
+        totalItem.style.borderTop = '1px solid #e0e0e0';
+        totalItem.innerHTML = `
+            <span class="balance-name">Total</span>
+            <span class="balance-value-text">${totalTurnos} turnos</span>
+        `;
+        balanceContent.appendChild(totalItem);
+    }
+
     function updateCalendarDisplay() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -671,6 +744,9 @@ function generateDays(year, month) {
 
             daysGrid.appendChild(cell);
         });
+
+        // Recalcular balance cuando cambia mes
+        updateBalance();
     }
 
     // ===== GUARDAR (SOLO WRITE) =====
