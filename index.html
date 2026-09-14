@@ -564,24 +564,18 @@ async function loadDataFromSheets() {
         schedule = {};
         if (data.schedule) {
             data.schedule.forEach(row => {
-                const fecha = normalizeDateFromSheets(row[0]);
+                const fecha = row[0];
                 const persona = row[1];
                 if (fecha && persona) {
                     schedule[fecha] = persona;
-                    console.log(`Schedule: ${fecha} → ${persona}`);
                 }
             });
         }
 
+        // ===== FESTIVOS: Asignar directamente sin procesar =====
         holidays = [];
-        if (data.holidays) {
-            data.holidays.forEach(row => {
-                const fecha = normalizeDateFromSheets(row[0]);
-                if (fecha) {
-                    holidays.push(fecha);
-                    console.log(`Holiday: ${fecha}`);
-                }
-            });
+        if (data.holidays && Array.isArray(data.holidays)) {
+            holidays = data.holidays; // Ya vienen correctamente formateadas
         }
 
         console.log('Schedule final:', schedule);
