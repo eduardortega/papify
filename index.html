@@ -727,6 +727,7 @@ function generateDays(year, month) {
                 if (person) {
                     const personDiv = document.createElement('div');
                     personDiv.className = 'person-assigned ' + person.toLowerCase();
+                    dayNumber.className += ' ' + person.toLowerCase();
                     personDiv.textContent = person;
                     cell.appendChild(personDiv);
                 }
