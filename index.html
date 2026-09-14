@@ -91,7 +91,7 @@
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             padding: 14px;
-            margin-bottom: 12px;
+            margin-bottom: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -671,7 +671,7 @@ function generateDays(year, month) {
         for (const person in balances) {
             const diff = balanceData[person];
             const diffClass = diff < 0 ? 'negative' : diff === 0 ? '' : 'positive';
-            const diffText = diff === 0 ? 'al día' : diff < 0 ? `${diff}` : `+${diff}`;
+            const diffText = diff === 0 ? '' : diff < 0 ? `${diff}` : `+${diff}`;
 
             const item = document.createElement('div');
             item.className = 'balance-item';
