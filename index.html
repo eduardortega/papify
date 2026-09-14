@@ -671,7 +671,7 @@ function generateDays(year, month) {
         for (const person in balances) {
             const diff = balanceData[person];
             const diffClass = diff < 0 ? 'negative' : diff === 0 ? '' : 'positive';
-            const diffText = diff === 0 ? '' : diff < 0 ? `${diff}` : `+${diff}`;
+            const diffText = diff === 0 ? '-' : diff < 0 ? `${diff}` : `+${diff}`;
 
             const item = document.createElement('div');
             item.className = 'balance-item';
