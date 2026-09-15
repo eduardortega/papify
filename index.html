@@ -80,6 +80,33 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Sync indicator (no bloqueante) */
+        .sync-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 16px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .sync-indicator.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .sync-spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #e0e0e0;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
         /* Balance Section */
         .balance-section {
             margin-bottom: 24px;
@@ -455,6 +482,12 @@
         </div>
     </div>
 
+    <!-- Indicador de sincronización (no bloqueante) -->
+    <div class="sync-indicator" id="syncIndicator">
+        <div class="sync-spinner"></div>
+        <span>Actualitzant...</span>
+    </div>
+
     <!-- Balance Section (Collapsible) -->
     <div class="balance-section">
         <button class="balance-toggle" id="balanceToggle">
@@ -500,7 +533,7 @@
     </div>
 
     <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCgJX0SzqjGX4Z_3SivO-fB9ZYetoB5q98dlG13_fSHWPKJ4rplQQpY5Jq3l0FcwgGNg/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyym4BCmazgKVNjcohG32zOdrZVsuQ_aXaG5iLibSWMnQWHbzTjHHVzPxq4h-VF1mPq/exec';
     const SCHOOL_YEAR_START = { year: 2026, month: 8 }; // Septiembre
     const SCHOOL_YEAR_END = { year: 2027, month: 5 }; // Junio
 
@@ -520,6 +553,14 @@
         document.getElementById('loadingOverlay').classList.remove('active');
     }
 
+    function showSync() {
+        document.getElementById('syncIndicator').classList.add('active');
+    }
+
+    function hideSync() {
+        document.getElementById('syncIndicator').classList.remove('active');
+    }
+
 function formatDateKey(date) {
     // Si es string (de Google Sheets), parsear como UTC
     if (typeof date === 'string') {
@@ -534,33 +575,25 @@ function formatDateKey(date) {
     return `${year}-${month}-${day}`;
 }
 
-    // ===== CARGAR DATOS (SOLO LECTURA DE SHEETS) =====
-function normalizeDateFromSheets(value) {
-  if (!value) return null;
-  
-  // Si es Date object (Google Sheets), convertir a string
-  if (value instanceof Date) {
-    const year = value.getFullYear();
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-  
-  // Si es string, limpiar
-  if (typeof value === 'string') {
-    // Tomar solo los primeros 10 caracteres (YYYY-MM-DD)
-    return value.substring(0, 10);
-  }
-  
-  return null;
-}
+    // ===== CACHÉ LOCAL =====
+    const CACHE_KEY = 'papify_data';
+    const CACHE_VERSION_KEY = 'papify_version';
 
-async function loadDataFromSheets() {
-    showLoading('Carregant dades...');
-    try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        const data = await response.json();
+    function normalizeDateFromSheets(value) {
+      if (!value) return null;
+      if (value instanceof Date) {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, '0');
+        const day = String(value.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      if (typeof value === 'string') {
+        return value.substring(0, 10);
+      }
+      return null;
+    }
 
+    function processData(data) {
         schedule = {};
         if (data.schedule) {
             data.schedule.forEach(row => {
@@ -574,19 +607,69 @@ async function loadDataFromSheets() {
 
         holidays = [];
         if (data.holidays && Array.isArray(data.holidays)) {
-            holidays = data.holidays; // Ya vienen correctamente formateadas
+            holidays = data.holidays;
         }
-
-        console.log('Schedule final:', schedule);
-        console.log('Holidays final:', holidays);
-        updateCalendarDisplay();
-    } catch (err) {
-        console.error('Error:', err);
-        alert('Error al carregar les dades.');
-    } finally {
-        hideLoading();
     }
-}
+
+    // ===== CARGAR DATOS: instantáneo desde caché + comprobación en segundo plano =====
+    async function loadDataFromSheets() {
+        const cachedRaw = localStorage.getItem(CACHE_KEY);
+        const cachedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+
+        if (cachedRaw) {
+            // 1. Pintar al instante con lo que ya tenemos guardado
+            try {
+                processData(JSON.parse(cachedRaw));
+                updateCalendarDisplay();
+            } catch (err) {
+                console.warn('Caché corrupta, se ignora:', err);
+            }
+
+            // 2. Comprobar en segundo plano si hay una versión más reciente
+            checkForUpdates(cachedVersion);
+        } else {
+            // Primera visita: no hay caché, cargar todo
+            showLoading('Carregant dades...');
+            await fetchFullData();
+            hideLoading();
+        }
+    }
+
+    // Petición ligera: solo consulta el número de versión
+    async function checkForUpdates(cachedVersion) {
+        try {
+            const response = await fetch(APPS_SCRIPT_URL + '?check=version');
+            const result = await response.json();
+
+            if (String(result.version) !== String(cachedVersion)) {
+                console.log('Nova versió detectada, actualitzant dades...');
+                showSync();
+                await fetchFullData();
+                hideSync();
+            } else {
+                console.log('Dades ja actualitzades (versió ' + result.version + ')');
+            }
+        } catch (err) {
+            console.warn('No s\'ha pogut comprovar versió, es manté la caché local:', err);
+        }
+    }
+
+    // Descarga completa de datos + guarda en localStorage
+    async function fetchFullData() {
+        try {
+            const response = await fetch(APPS_SCRIPT_URL);
+            const data = await response.json();
+
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            localStorage.setItem(CACHE_VERSION_KEY, data.version);
+
+            processData(data);
+            updateCalendarDisplay();
+        } catch (err) {
+            console.error('Error carregant dades de Sheets:', err);
+            alert('Error al carregar les dades des del Google Sheets.');
+        }
+    }
 
     // ===== GENERAR CALENDARIO (SOLO JS) =====
 function generateDays(year, month) {
@@ -761,11 +844,18 @@ function generateDays(year, month) {
             if (result.success) {
                 schedule[dateKey] = persona;
                 updateCalendarDisplay();
+                hideLoading();
+                // Refrescar caché local con la versión nueva del servidor (no bloqueante)
+                showSync();
+                await fetchFullData();
+                hideSync();
+            } else {
+                alert('Error al guardar el canvi.');
+                hideLoading();
             }
         } catch (err) {
             console.error('Error:', err);
             alert('Error al guardar.');
-        } finally {
             hideLoading();
         }
     }
